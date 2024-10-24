@@ -3,16 +3,260 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Email Spam Prediction</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <title>Email Spam Prediction | Detector de Spam</title>
+    <style>
+        :root {
+            --bg-primary: #f9f9f9;
+            --bg-secondary: #ffffff;
+            --text-primary: #333333;
+            --text-secondary: #666666;
+            --accent-primary: #007bff;
+            --accent-secondary: #0056b3;
+            --border-color: #dddddd;
+            --shadow-color: rgba(0, 0, 0, 0.1);
+        }
 
+        [data-theme="dark"] {
+            --bg-primary: #1a1a1a;
+            --bg-secondary: #2d2d2d;
+            --text-primary: #ffffff;
+            --text-secondary: #cccccc;
+            --accent-primary: #3399ff;
+            --accent-secondary: #66b3ff;
+            --border-color: #404040;
+            --shadow-color: rgba(0, 0, 0, 0.3);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            transition: background-color 0.3s, color 0.3s;
+        }
+
+        body {
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 2rem;
+        }
+
+        .container {
+            max-width: 600px;
+            width: 100%;
+            margin: 0 auto;
+        }
+
+        .header {
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+
+        .controls {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        .theme-toggle, .language-toggle {
+            background: var(--bg-secondary);
+            border: 2px solid var(--border-color);
+            color: var(--text-primary);
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .theme-toggle:hover, .language-toggle:hover {
+            border-color: var(--accent-primary);
+        }
+
+        .main-form {
+            background: var(--bg-secondary);
+            padding: 2rem;
+            border-radius: 16px;
+            box-shadow: 0 8px 30px var(--shadow-color);
+            width: 100%;
+        }
+
+        h2 {
+            color: var(--text-primary);
+            font-size: 1.8rem;
+            margin-bottom: 1.5rem;
+            text-align: center;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+
+        textarea {
+            width: 100%;
+            padding: 1rem;
+            border: 2px solid var(--border-color);
+            border-radius: 8px;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            font-size: 1rem;
+            resize: vertical;
+            min-height: 150px;
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: var(--accent-primary);
+        }
+
+        .submit-btn {
+            background: var(--accent-primary);
+            color: white;
+            padding: 1rem 2rem;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            width: 100%;
+            transition: background-color 0.3s, transform 0.2s;
+        }
+
+        .submit-btn:hover {
+            background: var(--accent-secondary);
+            transform: translateY(-2px);
+        }
+
+        .result {
+            margin-top: 2rem;
+            padding: 1.5rem;
+            background: var(--bg-secondary);
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .back-link {
+            display: inline-block;
+            margin-top: 1rem;
+            color: var(--accent-primary);
+            text-decoration: none;
+            font-size: 0.9rem;
+        }
+
+        .back-link:hover {
+            color: var(--accent-secondary);
+            text-decoration: underline;
+        }
+
+        @media (max-width: 768px) {
+            body {
+                padding: 1rem;
+            }
+
+            .main-form {
+                padding: 1.5rem;
+            }
+
+            .header {
+                flex-direction: column;
+                gap: 1rem;
+            }
+        }
+    </style>
 </head>
 <body>
-    <h2>Email Spam Prediction</h2>
-    <form action="/predict" method="POST">
-        <label for="email">Enter Email Text:</label><br>
-        <textarea id="email" name="email" rows="8" cols="50" required></textarea><br><br>
-        <input type="submit" value="Check if Spam or Ham">
-    </form>
+    <div class="container">
+        <header class="header">
+            <h2 class="title">Email Spam Prediction</h2>
+            <div class="controls">
+                <button class="theme-toggle" onclick="toggleTheme()">
+                    <span class="theme-icon">🌓</span>
+                    <span class="theme-text">Theme</span>
+                </button>
+                <button class="language-toggle" onclick="toggleLanguage()">
+                    <span class="lang-icon">🌐</span>
+                    <span class="lang-text">ES/EN</span>
+                </button>
+            </div>
+        </header>
+
+        <main class="main-form">
+            <form action="/predict" method="POST">
+                <div class="form-group">
+                    <label for="email" class="label-text">Enter Email Text:</label>
+                    <textarea 
+                        id="email" 
+                        name="email" 
+                        required
+                        placeholder="Paste your email content here..."
+                    ></textarea>
+                </div>
+                <button type="submit" class="submit-btn">Check if Spam or Ham</button>
+            </form>
+        </main>
+    </div>
+
+    <script>
+        const translations = {
+            en: {
+                title: "Email Spam Prediction",
+                label: "Enter Email Text:",
+                placeholder: "Paste your email content here...",
+                submit: "Check if Spam or Ham",
+                theme: "Theme",
+                back: "Go back"
+            },
+            es: {
+                title: "Detector de Spam",
+                label: "Ingrese el texto del correo:",
+                placeholder: "Pegue el contenido del correo aquí...",
+                submit: "Verificar si es Spam",
+                theme: "Tema",
+                back: "Volver"
+            }
+        };
+
+        let currentLang = 'en';
+        
+        function toggleTheme() {
+            const body = document.body;
+            const currentTheme = body.getAttribute('data-theme');
+            body.setAttribute('data-theme', currentTheme === 'dark' ? 'light' : 'dark');
+        }
+
+        function toggleLanguage() {
+            currentLang = currentLang === 'en' ? 'es' : 'en';
+            updateLanguage();
+        }
+
+        function updateLanguage() {
+            document.querySelector('.title').textContent = translations[currentLang].title;
+            document.querySelector('.label-text').textContent = translations[currentLang].label;
+            document.querySelector('textarea').placeholder = translations[currentLang].placeholder;
+            document.querySelector('.submit-btn').textContent = translations[currentLang].submit;
+            document.querySelector('.theme-text').textContent = translations[currentLang].theme;
+        }
+
+        // Initialize theme based on user preference
+        if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+            document.body.setAttribute('data-theme', 'dark');
+        }
+    </script>
 </body>
 </html>
